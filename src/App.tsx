@@ -6,6 +6,9 @@ import AlignRightIcons from "./components/icons/AlignRight.icon";
 import Underline from "./components/icons/Underline.icon";
 import ItalicIcon from "./components/icons/Italics.icon";
 import BoldIcon from "./components/icons/Bold.icon";
+import { sanitizeHTML } from "./lib/./SantizeHtml";
+
+
 
 function App() {
   const [align, setAlign] = useState("");
@@ -14,35 +17,48 @@ function App() {
   const [underlineActive, setUnderlineActive] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
 
-const handleSelectionChange = () => {
-  requestAnimationFrame(() => {
-    setBoldActive(document.queryCommandState('bold'));
-    setItalicActive(document.queryCommandState('italic'));
-    setUnderlineActive(document.queryCommandState('underline'));
+  const handleSelectionChange = () => {
+    requestAnimationFrame(() => {
+      // Only update state if value has changed
+      const newBold = document.queryCommandState("bold");
+      const newItalic = document.queryCommandState("italic");
+      const newUnderline = document.queryCommandState("underline");
 
-    let newAlign = '';
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
+      if (newBold !== boldActive) setBoldActive(newBold);
+      if (newItalic !== italicActive) setItalicActive(newItalic);
+      if (newUnderline !== underlineActive) setUnderlineActive(newUnderline);
+
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+
       let node = selection.anchorNode as HTMLElement | null;
 
       while (node && node !== editorRef.current) {
         if (node.nodeType === 1) {
           const display = window.getComputedStyle(node).display;
-          if (display === 'block' || display === 'flex') break;
+          if (display === "block" || display === "flex") break;
         }
         node = node.parentElement;
       }
 
+      let newAlign = "";
       if (node && editorRef.current?.contains(node)) {
-        const computed = window.getComputedStyle(node as Element);
-        if (computed.textAlign === 'center') newAlign = 'center';
-        else if (computed.textAlign === 'right') newAlign = 'right';
-        else newAlign = 'left';
+        const align = window.getComputedStyle(node).textAlign;
+        if (align === "center") newAlign = "center";
+        else if (align === "right") newAlign = "right";
+        else newAlign = "left";
       }
-    }
-    setAlign(newAlign);
-  });
-};
+
+      if (newAlign !== align) setAlign(newAlign);
+
+      // Log the content of the editor to the console
+      if (editorRef.current) {
+        const dirtyHTML = editorRef.current?.innerHTML || "";
+        const cleanHTML = sanitizeHTML(dirtyHTML);
+        console.log(cleanHTML);
+      }
+    });
+  };
 
 
   useEffect(() => {
@@ -55,40 +71,39 @@ const handleSelectionChange = () => {
     };
   }, []);
 
-const exec = (command: string, value?: string) => {
-  const selection = window.getSelection();
-  const isCollapsed = selection && selection.isCollapsed;
-  const isFormatCmd =
-    command === "bold" || command === "italic" || command === "underline";
+  const exec = (command: string, value?: string) => {
+    const selection = window.getSelection();
+    const isCollapsed = selection && selection.isCollapsed;
+    const isFormatCmd =
+      command === "bold" || command === "italic" || command === "underline";
 
-  if (
-    isFormatCmd &&
-    isCollapsed &&
-    editorRef.current &&
-    document.activeElement === editorRef.current
-  ) {
-    document.execCommand(command, false, value);
-    document.execCommand("insertHTML", false, "<span>\u200B</span>");
-    const range = document.createRange();
-    const editor = editorRef.current;
-    if (editor.lastChild) {
-      range.setStartAfter(editor.lastChild);
-      range.collapse(true);
-      selection?.removeAllRanges();
-      selection?.addRange(range);
+    if (
+      isFormatCmd &&
+      isCollapsed &&
+      editorRef.current &&
+      document.activeElement === editorRef.current
+    ) {
+      document.execCommand(command, false, value);
+      document.execCommand("insertHTML", false, "<span>\u200B</span>");
+      const range = document.createRange();
+      const editor = editorRef.current;
+      if (editor.lastChild) {
+        range.setStartAfter(editor.lastChild);
+        range.collapse(true);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+
+      // Update the bold state after executing the command
+      handleSelectionChange();
+    } else {
+      document.execCommand(command, false, value);
+      // Update the bold state after executing the command
+      handleSelectionChange();
     }
-    
-    // Update the bold state after executing the command
-    handleSelectionChange();
-  } else {
-    document.execCommand(command, false, value);
-    // Update the bold state after executing the command
-    handleSelectionChange();
-  }
 
-  editorRef.current?.focus();
-};
-
+    editorRef.current?.focus();
+  };
 
   return (
     <div className="w-[500px] h-auto border-2 border-blue-500 p-3 rounded-lg shadow-lg mx-auto mt-10">
