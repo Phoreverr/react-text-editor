@@ -14,48 +14,66 @@ function App() {
   const [italicActive, setItalicActive] = useState(false);
   const [underlineActive, setUnderlineActive] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const [formatBlock, setFormatBlock] = useState("");
+  const [orderedListActive, setOrderedListActive] = useState(false);
+  const [unorderedListActive, setUnorderedListActive] = useState(false);
   // const hasRun = useRef(false);
 
-  const handleSelectionChange = useCallback(() => {
-    requestAnimationFrame(() => {
-      const newBold = document.queryCommandState("bold");
-      const newItalic = document.queryCommandState("italic");
-      const newUnderline = document.queryCommandState("underline");
+const handleSelectionChange = useCallback(() => {
+  requestAnimationFrame(() => {
+    const newBold = document.queryCommandState("bold");
+    const newItalic = document.queryCommandState("italic");
+    const newUnderline = document.queryCommandState("underline");
+    const newOrderedList = document.queryCommandState("insertOrderedList");
+    const newUnorderedList = document.queryCommandState("insertUnorderedList");
+    const newFormatBlock = document.queryCommandValue("formatBlock")?.toLowerCase();
 
-      if (newBold !== boldActive) setBoldActive(newBold);
-      if (newItalic !== italicActive) setItalicActive(newItalic);
-      if (newUnderline !== underlineActive) setUnderlineActive(newUnderline);
+    if (newBold !== boldActive) setBoldActive(newBold);
+    if (newItalic !== italicActive) setItalicActive(newItalic);
+    if (newUnderline !== underlineActive) setUnderlineActive(newUnderline);
+    if (newOrderedList !== orderedListActive) setOrderedListActive(newOrderedList);
+    if (newUnorderedList !== unorderedListActive) setUnorderedListActive(newUnorderedList);
+    if (newFormatBlock !== formatBlock) setFormatBlock(newFormatBlock);
 
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
 
-      let node = selection.anchorNode as HTMLElement | null;
+    let node = selection.anchorNode as HTMLElement | null;
 
-      while (node && node !== editorRef.current) {
-        if (node.nodeType === 1) {
-          const display = window.getComputedStyle(node).display;
-          if (display === "block" || display === "flex") break;
-        }
-        node = node.parentElement;
+    while (node && node !== editorRef.current) {
+      if (node.nodeType === 1) {
+        const display = window.getComputedStyle(node).display;
+        if (display === "block" || display === "flex") break;
       }
+      node = node.parentElement;
+    }
 
-      let newAlign = "";
-      if (node && editorRef.current?.contains(node)) {
-        const align = window.getComputedStyle(node).textAlign;
-        if (align === "center") newAlign = "center";
-        else if (align === "right") newAlign = "right";
-        else newAlign = "left";
-      }
+    let newAlign = "";
+    if (node && editorRef.current?.contains(node)) {
+      const align = window.getComputedStyle(node).textAlign;
+      if (align === "center") newAlign = "center";
+      else if (align === "right") newAlign = "right";
+      else newAlign = "left";
+    }
 
-      if (newAlign !== align) setAlign(newAlign);
+    if (newAlign !== align) setAlign(newAlign);
 
-      if (editorRef.current) {
-        const dirtyHTML = editorRef.current.innerHTML;
-        const cleanHTML = sanitizeHTML(dirtyHTML);
-        console.log(cleanHTML);
-      }
-    });
-  }, [boldActive, italicActive, underlineActive, align]);
+    if (editorRef.current) {
+      const dirtyHTML = editorRef.current.innerHTML;
+      const cleanHTML = sanitizeHTML(dirtyHTML);
+      console.log(cleanHTML);
+    }
+  });
+}, [
+  boldActive,
+  italicActive,
+  underlineActive,
+  orderedListActive,
+  unorderedListActive,
+  formatBlock,
+  align,
+]);
+
 
   useEffect(() => {
     // if (hasRun.current) return;
@@ -109,7 +127,8 @@ function App() {
 
   return (
     <div className="w-[500px] h-auto border-2 border-blue-500 p-3 rounded-lg shadow-lg mx-auto mt-10">
-      <div className="flex space-x-2 mb-2">
+      <div className="flex flex-wrap mb-2 gap-1">
+        
         <button
           className={`px-2 py-1 rounded ${
             boldActive ? "bg-gray-500 text-white" : "bg-gray-100"
@@ -133,6 +152,24 @@ function App() {
           onClick={() => exec("underline")}
         >
           <Underline />
+        </button>
+        <button
+          className={`px-2 py-1 rounded ${formatBlock === "h1" ? "bg-gray-500 text-white" : "bg-gray-100"}`}
+          onClick={() => exec("formatBlock", "h1")}
+        >
+          H1
+        </button>
+        <button
+          className={`px-2 py-1 rounded ${formatBlock === "h2" ? "bg-gray-500 text-white" : "bg-gray-100"}`}
+          onClick={() => exec("formatBlock", "h2")}
+        >
+          H2
+        </button>
+        <button
+          className={`px-2 py-1 rounded ${formatBlock === "h3" ? "bg-gray-500 text-white" : "bg-gray-100"}`}
+          onClick={() => exec("formatBlock", "h3")}
+        >
+          H3
         </button>
         <button
           className={`px-2 py-1 rounded ${
@@ -170,10 +207,29 @@ function App() {
         >
           Redo
         </button>
+        <button
+          className="px-2 py-1 rounded bg-gray-100"
+          onClick={() => exec("formatBlock", "p")}
+        >
+          P
+        </button>
+        
+        <button
+          className={`px-2 py-1 rounded ${unorderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"}`}
+          onClick={() => exec("insertUnorderedList")}
+        >
+          • List
+        </button>
+        <button
+          className={`px-2 py-1 rounded ${orderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"}`}
+          onClick={() => exec("insertOrderedList")}
+        >
+          1. List
+        </button>
       </div>
       <div
         ref={editorRef}
-        className="w-full h-60 p-2 border border-gray-300 rounded-lg focus:outline-none resize-none"
+        className="w-full h-60 overflow-y-auto p-2 border border-gray-300 rounded-lg focus:outline-none scrollbar-thin scrollbar-thumb-gray-400"
         contentEditable
       ></div>
     </div>
