@@ -7,6 +7,8 @@ import Underline from "./components/icons/Underline.icon";
 import ItalicIcon from "./components/icons/Italics.icon";
 import BoldIcon from "./components/icons/Bold.icon";
 import { sanitizeHTML } from "./lib/./SantizeHtml";
+import UnorderedListIcon from "./components/icons/UnorderedList.icon";
+import OrderedListIcon from "./components/icons/OrderedList.icon";
 
 function App() {
   const [align, setAlign] = useState("");
@@ -19,61 +21,66 @@ function App() {
   const [unorderedListActive, setUnorderedListActive] = useState(false);
   // const hasRun = useRef(false);
 
-const handleSelectionChange = useCallback(() => {
-  requestAnimationFrame(() => {
-    const newBold = document.queryCommandState("bold");
-    const newItalic = document.queryCommandState("italic");
-    const newUnderline = document.queryCommandState("underline");
-    const newOrderedList = document.queryCommandState("insertOrderedList");
-    const newUnorderedList = document.queryCommandState("insertUnorderedList");
-    const newFormatBlock = document.queryCommandValue("formatBlock")?.toLowerCase();
+  const handleSelectionChange = useCallback(() => {
+    requestAnimationFrame(() => {
+      const newBold = document.queryCommandState("bold");
+      const newItalic = document.queryCommandState("italic");
+      const newUnderline = document.queryCommandState("underline");
+      const newOrderedList = document.queryCommandState("insertOrderedList");
+      const newUnorderedList = document.queryCommandState(
+        "insertUnorderedList"
+      );
+      const newFormatBlock = document
+        .queryCommandValue("formatBlock")
+        ?.toLowerCase();
 
-    if (newBold !== boldActive) setBoldActive(newBold);
-    if (newItalic !== italicActive) setItalicActive(newItalic);
-    if (newUnderline !== underlineActive) setUnderlineActive(newUnderline);
-    if (newOrderedList !== orderedListActive) setOrderedListActive(newOrderedList);
-    if (newUnorderedList !== unorderedListActive) setUnorderedListActive(newUnorderedList);
-    if (newFormatBlock !== formatBlock) setFormatBlock(newFormatBlock);
+      if (newBold !== boldActive) setBoldActive(newBold);
+      if (newItalic !== italicActive) setItalicActive(newItalic);
+      if (newUnderline !== underlineActive) setUnderlineActive(newUnderline);
+      if (newOrderedList !== orderedListActive)
+        setOrderedListActive(newOrderedList);
+      if (newUnorderedList !== unorderedListActive)
+        setUnorderedListActive(newUnorderedList);
+      if (newFormatBlock !== formatBlock) setFormatBlock(newFormatBlock);
 
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
 
-    let node = selection.anchorNode as HTMLElement | null;
+      let node = selection.anchorNode as HTMLElement | null;
 
-    while (node && node !== editorRef.current) {
-      if (node.nodeType === 1) {
-        const display = window.getComputedStyle(node).display;
-        if (display === "block" || display === "flex") break;
+      while (node && node !== editorRef.current) {
+        if (node.nodeType === 1) {
+          const display = window.getComputedStyle(node).display;
+          if (display === "block" || display === "flex") break;
+        }
+        node = node.parentElement;
       }
-      node = node.parentElement;
-    }
 
-    let newAlign = "";
-    if (node && editorRef.current?.contains(node)) {
-      const align = window.getComputedStyle(node).textAlign;
-      if (align === "center") newAlign = "center";
-      else if (align === "right") newAlign = "right";
-      else newAlign = "left";
-    }
+      let newAlign = "";
+      if (node && editorRef.current?.contains(node)) {
+        const align = window.getComputedStyle(node).textAlign;
+        if (align === "center") newAlign = "center";
+        else if (align === "right") newAlign = "right";
+        else newAlign = "left";
+      }
 
-    if (newAlign !== align) setAlign(newAlign);
+      if (newAlign !== align) setAlign(newAlign);
 
-    if (editorRef.current) {
-      const dirtyHTML = editorRef.current.innerHTML;
-      const cleanHTML = sanitizeHTML(dirtyHTML);
-      console.log(cleanHTML);
-    }
-  });
-}, [
-  boldActive,
-  italicActive,
-  underlineActive,
-  orderedListActive,
-  unorderedListActive,
-  formatBlock,
-  align,
-]);
-
+      if (editorRef.current) {
+        const dirtyHTML = editorRef.current.innerHTML;
+        const cleanHTML = sanitizeHTML(dirtyHTML);
+        console.log(cleanHTML);
+      }
+    });
+  }, [
+    boldActive,
+    italicActive,
+    underlineActive,
+    orderedListActive,
+    unorderedListActive,
+    formatBlock,
+    align,
+  ]);
 
   useEffect(() => {
     // if (hasRun.current) return;
@@ -128,7 +135,6 @@ const handleSelectionChange = useCallback(() => {
   return (
     <div className="w-[500px] h-auto border-2 border-blue-500 p-3 rounded-lg shadow-lg mx-auto mt-10">
       <div className="flex flex-wrap mb-2 gap-1">
-        
         <button
           className={`px-2 py-1 rounded ${
             boldActive ? "bg-gray-500 text-white" : "bg-gray-100"
@@ -154,22 +160,44 @@ const handleSelectionChange = useCallback(() => {
           <Underline />
         </button>
         <button
-          className={`px-2 py-1 rounded ${formatBlock === "h1" ? "bg-gray-500 text-white" : "bg-gray-100"}`}
-          onClick={() => exec("formatBlock", "h1")}
+          className={`px-2 py-1 rounded ${
+            formatBlock === "h1" ? "bg-gray-500 text-white" : "bg-gray-100"
+          }`}
+          onClick={() => exec("formatBlock", "<h1>")}
         >
           H1
         </button>
         <button
-          className={`px-2 py-1 rounded ${formatBlock === "h2" ? "bg-gray-500 text-white" : "bg-gray-100"}`}
-          onClick={() => exec("formatBlock", "h2")}
+          className={`px-2 py-1 rounded ${
+            formatBlock === "h2" ? "bg-gray-500 text-white" : "bg-gray-100"
+          }`}
+          onClick={() => exec("formatBlock", "<h2>")}
         >
           H2
         </button>
         <button
-          className={`px-2 py-1 rounded ${formatBlock === "h3" ? "bg-gray-500 text-white" : "bg-gray-100"}`}
-          onClick={() => exec("formatBlock", "h3")}
+          className={`px-2 py-1 rounded ${
+            formatBlock === "h3" ? "bg-gray-500 text-white" : "bg-gray-100"
+          }`}
+          onClick={() => exec("formatBlock", "<h3>")}
         >
           H3
+        </button>
+        <button
+          className={`px-2 py-1 rounded ${
+            unorderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"
+          }`}
+          onClick={() => exec("insertUnorderedList")}
+        >
+          <UnorderedListIcon />
+        </button>
+        <button
+          className={`px-2 py-1 rounded ${
+            orderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"
+          }`}
+          onClick={() => exec("insertOrderedList")}
+        >
+          <OrderedListIcon />
         </button>
         <button
           className={`px-2 py-1 rounded ${
@@ -206,25 +234,6 @@ const handleSelectionChange = useCallback(() => {
           onClick={() => exec("redo")}
         >
           Redo
-        </button>
-        <button
-          className="px-2 py-1 rounded bg-gray-100"
-          onClick={() => exec("formatBlock", "p")}
-        >
-          P
-        </button>
-        
-        <button
-          className={`px-2 py-1 rounded ${unorderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"}`}
-          onClick={() => exec("insertUnorderedList")}
-        >
-          • List
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${orderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"}`}
-          onClick={() => exec("insertOrderedList")}
-        >
-          1. List
         </button>
       </div>
       <div
