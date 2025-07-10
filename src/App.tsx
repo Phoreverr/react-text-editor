@@ -1,5 +1,5 @@
 import "./App.css";
-import { useRef, useState, useEffect, useCallback  } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import AlignLeftIcons from "./components/icons/AlignLeft.icon";
 import AlignCenterIcons from "./components/icons/AlignCenter.icon";
 import AlignRightIcons from "./components/icons/AlignRight.icon";
@@ -8,68 +8,70 @@ import ItalicIcon from "./components/icons/Italics.icon";
 import BoldIcon from "./components/icons/Bold.icon";
 import { sanitizeHTML } from "./lib/./SantizeHtml";
 
-
 function App() {
   const [align, setAlign] = useState("");
   const [boldActive, setBoldActive] = useState(false);
   const [italicActive, setItalicActive] = useState(false);
   const [underlineActive, setUnderlineActive] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  // const hasRun = useRef(false);
 
-const handleSelectionChange = useCallback(() => {
-  requestAnimationFrame(() => {
-    const newBold = document.queryCommandState("bold");
-    const newItalic = document.queryCommandState("italic");
-    const newUnderline = document.queryCommandState("underline");
+  const handleSelectionChange = useCallback(() => {
+    requestAnimationFrame(() => {
+      const newBold = document.queryCommandState("bold");
+      const newItalic = document.queryCommandState("italic");
+      const newUnderline = document.queryCommandState("underline");
 
-    if (newBold !== boldActive) setBoldActive(newBold);
-    if (newItalic !== italicActive) setItalicActive(newItalic);
-    if (newUnderline !== underlineActive) setUnderlineActive(newUnderline);
+      if (newBold !== boldActive) setBoldActive(newBold);
+      if (newItalic !== italicActive) setItalicActive(newItalic);
+      if (newUnderline !== underlineActive) setUnderlineActive(newUnderline);
 
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
 
-    let node = selection.anchorNode as HTMLElement | null;
+      let node = selection.anchorNode as HTMLElement | null;
 
-    while (node && node !== editorRef.current) {
-      if (node.nodeType === 1) {
-        const display = window.getComputedStyle(node).display;
-        if (display === "block" || display === "flex") break;
+      while (node && node !== editorRef.current) {
+        if (node.nodeType === 1) {
+          const display = window.getComputedStyle(node).display;
+          if (display === "block" || display === "flex") break;
+        }
+        node = node.parentElement;
       }
-      node = node.parentElement;
-    }
 
-    let newAlign = "";
-    if (node && editorRef.current?.contains(node)) {
-      const align = window.getComputedStyle(node).textAlign;
-      if (align === "center") newAlign = "center";
-      else if (align === "right") newAlign = "right";
-      else newAlign = "left";
-    }
+      let newAlign = "";
+      if (node && editorRef.current?.contains(node)) {
+        const align = window.getComputedStyle(node).textAlign;
+        if (align === "center") newAlign = "center";
+        else if (align === "right") newAlign = "right";
+        else newAlign = "left";
+      }
 
-    if (newAlign !== align) setAlign(newAlign);
+      if (newAlign !== align) setAlign(newAlign);
 
-    if (editorRef.current) {
-      const dirtyHTML = editorRef.current.innerHTML;
-      const cleanHTML = sanitizeHTML(dirtyHTML);
-      console.log(cleanHTML);
-    }
-  });
-}, [boldActive, italicActive, underlineActive, align]);
+      if (editorRef.current) {
+        const dirtyHTML = editorRef.current.innerHTML;
+        const cleanHTML = sanitizeHTML(dirtyHTML);
+        console.log(cleanHTML);
+      }
+    });
+  }, [boldActive, italicActive, underlineActive, align]);
 
+  useEffect(() => {
+    // if (hasRun.current) return;
+    // hasRun.current = true;
 
-useEffect(() => {
-  const editor = editorRef.current;
-  if (!editor) return;
+    const editor = editorRef.current;
+    if (!editor) return;
 
-  document.addEventListener("selectionchange", handleSelectionChange);
-  editor.addEventListener("input", handleSelectionChange);
+    document.addEventListener("selectionchange", handleSelectionChange);
+    editor.addEventListener("input", handleSelectionChange);
 
-  return () => {
-    document.removeEventListener("selectionchange", handleSelectionChange);
-    editor.removeEventListener("input", handleSelectionChange);
-  };
-}, [handleSelectionChange]);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+      editor.removeEventListener("input", handleSelectionChange);
+    };
+  }, [handleSelectionChange]);
 
   const exec = (command: string, value?: string) => {
     const selection = window.getSelection();
