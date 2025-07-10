@@ -23,7 +23,6 @@ DOMPurify.addHook('uponSanitizeAttribute', (node) => {
         ].includes(prop);
       })
       .join('; ');
-
     if (safeStyles) {
       node.setAttribute('style', safeStyles);
     } else {
@@ -35,8 +34,8 @@ DOMPurify.addHook('uponSanitizeAttribute', (node) => {
 // Your sanitize function
 export function sanitizeHTML(dirty: string): string {
   return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: ['b', 'i', 'u', 'strong', 'em', 'span', 'div', 'br', 'p'],
-    ALLOWED_ATTR: ['style'],
+    ALLOWED_TAGS: ['b', 'i', 'u', 'strong', 'em', 'span', 'div', 'br', 'p', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a'],
+    ALLOWED_ATTR: ['style', 'href'],
     FORBID_ATTR: ['onerror', 'onclick', 'onload'],
     FORBID_TAGS: ['script', 'iframe', 'object', 'embed'],
   });

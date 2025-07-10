@@ -9,6 +9,8 @@ import BoldIcon from "./components/icons/Bold.icon";
 import { sanitizeHTML } from "./lib/./SantizeHtml";
 import UnorderedListIcon from "./components/icons/UnorderedList.icon";
 import OrderedListIcon from "./components/icons/OrderedList.icon";
+import { Dropdown, Button, Input } from "antd";
+import { DownOutlined, LinkOutlined } from "@ant-design/icons";
 
 function App() {
   const [align, setAlign] = useState("");
@@ -19,7 +21,9 @@ function App() {
   const [formatBlock, setFormatBlock] = useState("");
   const [orderedListActive, setOrderedListActive] = useState(false);
   const [unorderedListActive, setUnorderedListActive] = useState(false);
-  // const hasRun = useRef(false);
+  const [linkDropdownOpen, setLinkDropdownOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+
 
   const handleSelectionChange = useCallback(() => {
     requestAnimationFrame(() => {
@@ -68,6 +72,7 @@ function App() {
 
       if (editorRef.current) {
         const dirtyHTML = editorRef.current.innerHTML;
+        // console.log("dirty", dirtyHTML);
         const cleanHTML = sanitizeHTML(dirtyHTML);
         console.log(cleanHTML);
       }
@@ -81,6 +86,36 @@ function App() {
     formatBlock,
     align,
   ]);
+
+const insertLink = () => {
+  const url = linkUrl.trim();
+  if (!url) return;
+
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed) {
+    alert("Please select text to turn into a link.");
+    return;
+  }
+
+  // Insert the link
+  document.execCommand("createLink", false, url);
+
+  // Post-process: add inline style to the newly created <a>
+  const editor = editorRef.current;
+  if (editor) {
+    const anchors = editor.getElementsByTagName("a");
+    for (let i = 0; i < anchors.length; i++) {
+      const a = anchors[i];
+      if (a.getAttribute("href") === url) {
+        a.setAttribute("style", "text-decoration: none;");
+      }
+    }
+  }
+
+  setLinkUrl("");
+  setLinkDropdownOpen(false);
+};
+
 
   useEffect(() => {
     // if (hasRun.current) return;
@@ -163,7 +198,7 @@ function App() {
           className={`px-2 py-1 rounded ${
             formatBlock === "h1" ? "bg-gray-500 text-white" : "bg-gray-100"
           }`}
-          onClick={() => exec("formatBlock", "<h1>")}
+          onClick={() => exec("formatBlock", "H1")}
         >
           H1
         </button>
@@ -171,7 +206,7 @@ function App() {
           className={`px-2 py-1 rounded ${
             formatBlock === "h2" ? "bg-gray-500 text-white" : "bg-gray-100"
           }`}
-          onClick={() => exec("formatBlock", "<h2>")}
+          onClick={() => exec("formatBlock", "H2")}
         >
           H2
         </button>
@@ -179,7 +214,7 @@ function App() {
           className={`px-2 py-1 rounded ${
             formatBlock === "h3" ? "bg-gray-500 text-white" : "bg-gray-100"
           }`}
-          onClick={() => exec("formatBlock", "<h3>")}
+          onClick={() => exec("formatBlock", "H3")}
         >
           H3
         </button>
@@ -235,6 +270,33 @@ function App() {
         >
           Redo
         </button>
+        <Dropdown
+          open={linkDropdownOpen}
+          onOpenChange={setLinkDropdownOpen}
+          trigger={["click"]} // Only open on click
+          popupRender={() => (
+            <div className="p-2 bg-white border rounded shadow-md w-64">
+              <Input
+                placeholder="https://example.com"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                onPressEnter={insertLink}
+              />
+              <div className="flex justify-end mt-2">
+                <Button size="small" type="primary" onClick={insertLink}>
+                  Insert
+                </Button>
+              </div>
+            </div>
+          )}
+        >
+          <Button
+            icon={<LinkOutlined />}
+            className="px-2 py-1 rounded bg-gray-100"
+          >
+            Link <DownOutlined />
+          </Button>
+        </Dropdown>
       </div>
       <div
         ref={editorRef}
