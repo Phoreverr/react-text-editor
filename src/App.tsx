@@ -11,6 +11,9 @@ import UnorderedListIcon from "./components/icons/UnorderedList.icon";
 import OrderedListIcon from "./components/icons/OrderedList.icon";
 import { Dropdown, Button, Input } from "antd";
 import { DownOutlined, LinkOutlined } from "@ant-design/icons";
+import ToolbarButton from "./components/ToolbarButton";
+import LinkDropdown from "./components/LinkDropdown";
+import Editor from "./components/Editor";
 
 function App() {
   const [align, setAlign] = useState("");
@@ -23,7 +26,6 @@ function App() {
   const [unorderedListActive, setUnorderedListActive] = useState(false);
   const [linkDropdownOpen, setLinkDropdownOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
-
 
   const handleSelectionChange = useCallback(() => {
     requestAnimationFrame(() => {
@@ -87,40 +89,36 @@ function App() {
     align,
   ]);
 
-const insertLink = () => {
-  const url = linkUrl.trim();
-  if (!url) return;
+  const insertLink = () => {
+    const url = linkUrl.trim();
+    if (!url) return;
 
-  const selection = window.getSelection();
-  if (!selection || selection.isCollapsed) {
-    alert("Please select text to turn into a link.");
-    return;
-  }
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      alert("Please select text to turn into a link.");
+      return;
+    }
 
-  // Insert the link
-  document.execCommand("createLink", false, url);
+    // Insert the link
+    document.execCommand("createLink", false, url);
 
-  // Post-process: add inline style to the newly created <a>
-  const editor = editorRef.current;
-  if (editor) {
-    const anchors = editor.getElementsByTagName("a");
-    for (let i = 0; i < anchors.length; i++) {
-      const a = anchors[i];
-      if (a.getAttribute("href") === url) {
-        a.setAttribute("style", "text-decoration: none;");
+    // Post-process: add inline style to the newly created <a>
+    const editor = editorRef.current;
+    if (editor) {
+      const anchors = editor.getElementsByTagName("a");
+      for (let i = 0; i < anchors.length; i++) {
+        const a = anchors[i];
+        if (a.getAttribute("href") === url) {
+          a.setAttribute("style", "text-decoration: none;");
+        }
       }
     }
-  }
 
-  setLinkUrl("");
-  setLinkDropdownOpen(false);
-};
-
+    setLinkUrl("");
+    setLinkDropdownOpen(false);
+  };
 
   useEffect(() => {
-    // if (hasRun.current) return;
-    // hasRun.current = true;
-
     const editor = editorRef.current;
     if (!editor) return;
 
@@ -163,146 +161,78 @@ const insertLink = () => {
       // Update the bold state after executing the command
       handleSelectionChange();
     }
-
     editorRef.current?.focus();
   };
 
   return (
     <div className="w-[500px] h-auto border-2 border-blue-500 p-3 rounded-lg shadow-lg mx-auto mt-10">
       <div className="flex flex-wrap mb-2 gap-1">
-        <button
-          className={`px-2 py-1 rounded ${
-            boldActive ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+        <ToolbarButton
+          active={boldActive}
           onClick={() => exec("bold")}
-        >
-          <BoldIcon />
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            italicActive ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          icon={<BoldIcon />}
+        />
+        <ToolbarButton
+          active={italicActive}
           onClick={() => exec("italic")}
-        >
-          <ItalicIcon />
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            underlineActive ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          icon={<ItalicIcon />}
+        />
+        <ToolbarButton
+          active={underlineActive}
           onClick={() => exec("underline")}
-        >
-          <Underline />
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            formatBlock === "h1" ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          icon={<Underline />}
+        />
+        <ToolbarButton
+          active={formatBlock === "h1"}
           onClick={() => exec("formatBlock", "H1")}
-        >
-          H1
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            formatBlock === "h2" ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          label="H1"
+        />
+        <ToolbarButton
+          active={formatBlock === "h2"}
           onClick={() => exec("formatBlock", "H2")}
-        >
-          H2
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            formatBlock === "h3" ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          label="H2"
+        />
+        <ToolbarButton
+          active={formatBlock === "h3"}
           onClick={() => exec("formatBlock", "H3")}
-        >
-          H3
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            unorderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          label="H3"
+        />
+        <ToolbarButton
+          active={unorderedListActive}
           onClick={() => exec("insertUnorderedList")}
-        >
-          <UnorderedListIcon />
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            orderedListActive ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          icon={<UnorderedListIcon />}
+        />
+        <ToolbarButton
+          active={orderedListActive}
           onClick={() => exec("insertOrderedList")}
-        >
-          <OrderedListIcon />
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            align === "left" ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          icon={<OrderedListIcon />}
+        />
+        <ToolbarButton
+          active={align === "left"}
           onClick={() => exec("justifyLeft")}
-        >
-          <AlignLeftIcons />
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            align === "center" ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          icon={<AlignLeftIcons />}
+        />
+        <ToolbarButton
+          active={align === "center"}
           onClick={() => exec("justifyCenter")}
-        >
-          <AlignCenterIcons />
-        </button>
-        <button
-          className={`px-2 py-1 rounded ${
-            align === "right" ? "bg-gray-500 text-white" : "bg-gray-100"
-          }`}
+          icon={<AlignCenterIcons />}
+        />
+        <ToolbarButton
+          active={align === "right"}
           onClick={() => exec("justifyRight")}
-        >
-          <AlignRightIcons />
-        </button>
-        <button
-          className="px-2 py-1 rounded bg-gray-100"
-          onClick={() => exec("undo")}
-        >
-          Undo
-        </button>
-        <button
-          className="px-2 py-1 rounded bg-gray-100"
-          onClick={() => exec("redo")}
-        >
-          Redo
-        </button>
-        <Dropdown
+          icon={<AlignRightIcons />}
+        />
+        <ToolbarButton onClick={() => exec("undo")} label="Undo" />
+        <ToolbarButton onClick={() => exec("redo")} label="Redo" />
+        <LinkDropdown
           open={linkDropdownOpen}
-          onOpenChange={setLinkDropdownOpen}
-          trigger={["click"]} // Only open on click
-          popupRender={() => (
-            <div className="p-2 bg-white border rounded shadow-md w-64">
-              <Input
-                placeholder="https://example.com"
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                onPressEnter={insertLink}
-              />
-              <div className="flex justify-end mt-2">
-                <Button size="small" type="primary" onClick={insertLink}>
-                  Insert
-                </Button>
-              </div>
-            </div>
-          )}
-        >
-          <Button
-            icon={<LinkOutlined />}
-            className="px-2 py-1 rounded bg-gray-100"
-          >
-            Link <DownOutlined />
-          </Button>
-        </Dropdown>
+          setOpen={setLinkDropdownOpen}
+          linkUrl={linkUrl}
+          setLinkUrl={setLinkUrl}
+          insertLink={insertLink}
+        />
       </div>
-      <div
-        ref={editorRef}
-        className="w-full h-60 overflow-y-auto p-2 border border-gray-300 rounded-lg focus:outline-none scrollbar-thin scrollbar-thumb-gray-400"
-        contentEditable
-      ></div>
+      <Editor ref={editorRef} />
     </div>
   );
 }
