@@ -27,7 +27,7 @@ const LinkDropdown: React.FC<LinkDropdownProps> = ({
           <Input
             placeholder="https://example.com"
             value={linkUrl}
-            onChange={(e) => setLinkUrl(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkUrl(e.target.value)}
             onPressEnter={insertLink}
           />
           <div className="flex justify-end mt-2">

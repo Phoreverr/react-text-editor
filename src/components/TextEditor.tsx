@@ -1,20 +1,18 @@
-import "./App.css";
-import { useRef, useState, useEffect, useCallback } from "react";
-import AlignLeftIcons from "./components/icons/AlignLeft.icon";
-import AlignCenterIcons from "./components/icons/AlignCenter.icon";
-import AlignRightIcons from "./components/icons/AlignRight.icon";
-import Underline from "./components/icons/Underline.icon";
-import ItalicIcon from "./components/icons/Italics.icon";
-import BoldIcon from "./components/icons/Bold.icon";
-import { sanitizeHTML } from "./lib/./SantizeHtml";
-import UnorderedListIcon from "./components/icons/UnorderedList.icon";
-import OrderedListIcon from "./components/icons/OrderedList.icon";
-import ToolbarButton from "./components/ToolbarButton";
-import LinkDropdown from "./components/LinkDropdown";
-import Editor from "./components/Editor";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import AlignLeftIcons from "./icons/AlignLeft.icon";
+import AlignCenterIcons from "./icons/AlignCenter.icon";
+import AlignRightIcons from "./icons/AlignRight.icon";
+import Underline from "./icons/Underline.icon";
+import ItalicIcon from "./icons/Italics.icon";
+import BoldIcon from "./icons/Bold.icon";
+import { sanitizeHTML } from "../lib/SantizeHtml";
+import UnorderedListIcon from "./icons/UnorderedList.icon";
+import OrderedListIcon from "./icons/OrderedList.icon";
+import ToolbarButton from "./ToolbarButton";
+import LinkDropdown from "./LinkDropdown";
+import Editor from "./Editor";
 
-
-function App() {
+const TextEditor = () => {
   const [align, setAlign] = useState("");
   const [boldActive, setBoldActive] = useState(false);
   const [italicActive, setItalicActive] = useState(false);
@@ -234,6 +232,6 @@ function App() {
       <Editor ref={editorRef} />
     </div>
   );
-}
+};
 
-export default App;
+export default TextEditor;
